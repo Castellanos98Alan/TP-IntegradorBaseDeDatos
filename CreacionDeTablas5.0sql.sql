@@ -1,4 +1,7 @@
+Create database if not exists tp_integrador;
 use tp_integrador;
+
+ -- drop database tp_integrador;
 
 -- Creacion de tablas
 
@@ -11,17 +14,17 @@ CREATE TABLE `asistente` (
   `Provincia` VARCHAR(45) NULL,
   `Ciudad` VARCHAR(45) NULL,
   `InteresPrincipal` VARCHAR(45) NULL,
-  PRIMARY KEY (`ID_Asistente`),
-  UNIQUE INDEX `ID_Asistente_UNIQUE` (`ID_Asistente` ASC) VISIBLE);
+  PRIMARY KEY (`ID_Asistente`)
+  );
   
   CREATE TABLE `evento` (
   `idEvento` INT NOT NULL AUTO_INCREMENT,
   `nombre` VARCHAR(45) NULL,
-  PRIMARY KEY (`idEvento`),
-  UNIQUE INDEX `idEvento_UNIQUE` (`idEvento` ASC) VISIBLE);
+  PRIMARY KEY (`idEvento`)
+  );
   
   CREATE TABLE `empresa` (
-  `CUIT` INT NOT NULL AUTO_INCREMENT,
+  `CUIT` VARCHAR(45) NOT NULL ,
   `Nombre` VARCHAR(45) NULL,
   PRIMARY KEY (`CUIT`),
   UNIQUE INDEX `CUIT_UNIQUE` (`CUIT` ASC) VISIBLE);
@@ -41,29 +44,35 @@ CREATE TABLE `asistente` (
   
   CREATE TABLE `proyecto` (
   `COD` INT NOT NULL AUTO_INCREMENT,
-  `descripcion` VARCHAR(45) NOT NULL,
+  `descripcion` VARCHAR(145) NOT NULL,
   `nombre` VARCHAR(45) NOT NULL,
   `objetivo` VARCHAR(145) NOT NULL,
   `lista_tags` VARCHAR(45) NULL,
   PRIMARY KEY (`COD`),
   UNIQUE INDEX `COD_UNIQUE` (`COD` ASC) VISIBLE);
   
+   CREATE TABLE `tipo` (
+  `id` INT NOT NULL,
+  `descripcion` VARCHAR(145) NULL,
+  PRIMARY KEY (`id`));
+  
   CREATE TABLE `actividad` (
-  `nombre` VARCHAR(45) NOT NULL,
+  `nombre` VARCHAR(85) NOT NULL,
   `fecha_hora` DATETIME NOT NULL,
   `lugar` VARCHAR(85) NULL,
   `ID_EVENTO` INT NULL,
+  `ID_TIPO` INT NOT NULL,
   PRIMARY KEY (`nombre`),
   UNIQUE INDEX `nombre_UNIQUE` (`nombre` ASC) VISIBLE,
     FOREIGN KEY (`ID_EVENTO`)
-    REFERENCES `evento` (`idEvento`));
+    REFERENCES `evento` (`idEvento`),
+    FOREIGN KEY (`ID_TIPO`)
+    REFERENCES `tipo` (`id`));
     
-    ALTER TABLE actividad
-modify nombre VARCHAR(85) PRIMARY KEY NOT NULL;
 
 CREATE TABLE `asistenteparticipaenactividad` (
   `ID_ASIST` INT NOT NULL,
-  `NOMBRE_ACT` VARCHAR(45) NOT NULL,
+  `NOMBRE_ACT` VARCHAR(145) NOT NULL,
   PRIMARY KEY (`ID_ASIST`, `NOMBRE_ACT`),
   CONSTRAINT `idAsist`
     FOREIGN KEY (`ID_ASIST`)
@@ -84,6 +93,7 @@ CREATE TABLE `asistenteparticipaenactividad` (
 CREATE TABLE `asistenteopinaennota` (
   `ID_ASIST` INT NOT NULL,
   `ID_NOTA` INT NOT NULL,
+  `opinion`VARCHAR (145) NOT NULL,
   PRIMARY KEY (`ID_ASIST`, `ID_NOTA`),
     FOREIGN KEY (`ID_ASIST`)
     REFERENCES `asistente` (`ID_Asistente`),
@@ -92,8 +102,8 @@ CREATE TABLE `asistenteopinaennota` (
   
    CREATE TABLE `premio` (
   `cod` INT PRIMARY KEY NOT NULL AUTO_INCREMENT,
-  `tipo` VARCHAR(45) NOT NULL,
-  `COD_PROYECTO` INT NOT NULL,
+  `tipo` VARCHAR(145) NOT NULL,
+  `COD_PROYECTO` INT NULL,
   FOREIGN KEY (`COD_PROYECTO`)
   REFERENCES `proyecto` (`COD`)
   );
@@ -106,7 +116,7 @@ CREATE TABLE `asistenteopinaennota` (
     REFERENCES `asistente` (`ID_Asistente`),
     FOREIGN KEY (`cod_Premio`)
     REFERENCES `premio` (`cod`));
-    
+ 
       CREATE TABLE `estudiante` (
   `ID` INT PRIMARY KEY NOT NULL AUTO_INCREMENT,
   `nombre` VARCHAR(45) NOT NULL,
@@ -122,6 +132,7 @@ CREATE TABLE `asistenteopinaennota` (
   CREATE TABLE `notaPeriodistaEntrevistaEstudiante` (
   `ID_NOTA` INT NOT NULL,
   `ID_ESTUDIANTE` INT NOT NULL,
+  `descripcion`VARCHAR(145) NOT NULL,
   PRIMARY KEY (`ID_NOTA`, `ID_ESTUDIANTE`),
     FOREIGN KEY (`ID_NOTA`)
     REFERENCES `nota_Periodistica` (`ID`),
@@ -147,7 +158,7 @@ REFERENCES proyecto (cod);
      
   CREATE TABLE `esbrindada` (
   `nombre_actividad` VARCHAR(85) NOT NULL,
-  `cuit_empresa` INT NOT NULL,
+  `cuit_empresa` VARCHAR(45) NOT NULL,
   PRIMARY KEY (`nombre_actividad`, `cuit_empresa`),
     FOREIGN KEY (`nombre_actividad`)
     REFERENCES `actividad` (`nombre`),
@@ -155,7 +166,8 @@ REFERENCES proyecto (cod);
     REFERENCES `empresa` (`cuit`));
     
        CREATE TABLE `modalidad` (
-  `ID` INT PRIMARY KEY NOT NULL AUTO_INCREMENT
+  `ID` INT PRIMARY KEY NOT NULL AUTO_INCREMENT,
+  `descripcion` VARCHAR(45) NOT NULL
   );
     
     
@@ -169,9 +181,9 @@ REFERENCES proyecto (cod);
     REFERENCES `actividad` (`nombre`)); 
   
   
-   CREATE TABLE `virtual` (
+   CREATE TABLE `sesion_virtual` (
   `ID_MOD` INT PRIMARY KEY NOT NULL AUTO_INCREMENT,
-  `enlace` VARCHAR(65) NOT NULL,
+  `enlace` VARCHAR(165) NOT NULL,
   FOREIGN KEY (`ID_MOD`)
   REFERENCES `modalidad` (`ID`)
   );
@@ -182,8 +194,31 @@ REFERENCES proyecto (cod);
   REFERENCES `modalidad` (`ID`)
   );
   
+    CREATE TABLE pertenece (
+  legajo_docente INT NOT NULL,
+  id_stand INT NOT NULL,
+  id_establecimiento INT NOT NULL,
+  PRIMARY KEY (legajo_docente, id_stand, id_establecimiento),
+  CONSTRAINT fk_legajo_docente_pertenece
+  FOREIGN KEY (legajo_docente) REFERENCES docente (legajo),
+  CONSTRAINT fk_id_stand_pertenece
+  FOREIGN KEY (id_stand) REFERENCES stand (id)
+  );
+  
+ 
+  
+
   
   -- INSERCCION DE DATOS 
+  
+  INSERT INTO tipo
+(id, descripcion) VALUES 
+(1, 'Charla'),
+(2, 'Conferencia'),
+(3, 'Ponencia'),
+(4, 'Demostración'),
+(5, 'Sorteo'),
+(6, 'Taller');
   
 INSERT INTO asistente 
 (ID_Asistente, email, nombre, apellido, Pais, Provincia, Ciudad, InteresPrincipal) VALUES
@@ -204,7 +239,9 @@ insert into docente
 (1003, 'Carolina Gómez', 'Profesora en Tecnología'),
 (1004, 'Ricardo Fernández', 'Magíster en Educación'),
 (1005, 'Lucía Martínez', 'Licenciada en Diseño Gráfico'),
-(1006, 'Santiago Torres', 'Doctor en Ciencias de la Computación');
+(1006, 'Santiago Torres', 'Doctor en Ciencias de la Computación'),
+('1007', 'Paola Argento', 'Licenciada en informatica');
+
 
 insert into empresa (CUIT, nombre) VALUES
 ('30-71234567-9', 'TechVision S.A.'),
@@ -227,7 +264,7 @@ SET nombre = 'UBA' where (idEstablecimiento = 4) ;
 
 INSERT INTO proyecto 
 (COD, descripcion, nombre, objetivo, lista_tags) VALUES
-(101, 'Sistema de gafas inteligentes que muestran información nutricional en tiempo real.', 'NutriGlass', 'Promover una alimentación consciente mediante realidad aumentada.', 'IA, Realidad Aumentada, Salud'),
+(101, 'Sistema de gafas inteligentes que muestran información nutricional en tiempo real.', 'NutriGlass', 'Promover una alimentación consciente mediante realidad aumentada.', 'Realidad Aumentada, IA,  Salud'),
 (102, 'Aplicación móvil para conectar estudiantes y empresas tecnológicas.', 'ConectaTech', 'Fomentar la inserción laboral de jóvenes en el sector IT.', 'Aplicaciones, Empleo, Educación'),
 (103, 'Plataforma web de reciclaje colaborativo con recompensas digitales.', 'EcoPoints', 'Motivar el reciclaje mediante gamificación y recompensas sostenibles.', 'Sustentabilidad, Web, Comunidad'),
 (104, 'Sitio web interactivo que promueve la identidad visual de proyectos estudiantiles.', 'ExpoWeb', 'Difundir los proyectos de la muestra mediante diseño UX/UI y recursos multimedia.', 'Diseño Web, UX/UI, Frontend'),
@@ -270,6 +307,7 @@ INSERT INTO premio
 (1, '1° Puesto - PC Gamer de última generación (valor $1.200.000)', 101),
 (2, '2° Puesto - Notebook Lenovo IdeaPad 15” (valor $800.000)', 103),
 (3, '3° Puesto - Tablet Samsung Galaxy Tab S6 Lite (valor $500.000)', 105),
+
 -- Premios sorteados en actividades
 (4, 'Sorteo - Mochila con merchandising de la Expo', NULL),
 (5, 'Sorteo - Auriculares inalámbricos JBL', NULL),
@@ -291,23 +329,169 @@ INSERT INTO stand
 (6, 'Zona de seguridad digital de SafeSchool con simulador de accesos', 3, 106);
 
 
+
 INSERT INTO actividad 
-(nombre, fecha_hora, lugar, ID_EVENTO) VALUES
--- Día 1 – Expo Proyecto 2026
-('Apertura oficial y bienvenida', '2026-10-10 10:00:00', 'Auditorio Principal', 1),
-('Charla: Innovación y tecnología educativa', '2026-10-10 12:00:00', 'Sala A', 1),
-('Taller de Realidad Aumentada', '2026-10-10 15:00:00', 'Laboratorio 1', 1),
-('Presentación de proyectos destacados', '2026-10-10 17:00:00', 'Stand Central', 1),
+(nombre, fecha_hora, lugar, ID_EVENTO, ID_TIPO) VALUES
+-- Día 1 – Expo Proyecto WEB
+('Apertura oficial y bienvenida', '2026-10-10 10:00:00', 'Auditorio Principal', 1, 2),
+('Charla: Innovación y tecnología educativa', '2026-10-10 12:00:00', 'Sala A', 1, 1),
+('Taller de Realidad Aumentada', '2026-10-10 15:00:00', 'Laboratorio 1', 1, 6),
+('Presentación de proyectos destacados', '2026-10-10 17:00:00', 'Stand Central', 1, 4),
 
 -- Día 2 – Expo Proyecto Web
-('Charla: Diseño UX/UI en entornos educativos', '2026-10-11 10:00:00', 'Sala B', 2),
-('Taller: Creación de sitios web responsivos', '2026-10-11 12:00:00', 'Laboratorio Web', 2),
-('Exposición: ConectaTech y empleabilidad digital', '2026-10-11 15:00:00', 'Zona Stands', 2),
-('Demostración: NutriGlass en acción', '2026-10-11 17:00:00', 'Stand 1', 2),
+('Charla: Diseño UX/UI en entornos educativos', '2026-10-11 10:00:00', 'Sala B', 2, 1),
+('Taller: Creación de sitios web responsivos', '2026-10-11 12:00:00', 'Laboratorio Web', 2, 6),
+('Exposición: ConectaTech y empleabilidad digital', '2026-10-11 15:00:00', 'Zona Stands', 2, 3),
+('Demostración: NutriGlass en acción', '2026-10-11 17:00:00', 'Stand 1', 2, 4),
 
 -- Día 3 – Expo Proyecto Web
-('Charla: Ciberseguridad y protección de datos', '2026-10-12 10:00:00', 'Sala A', 3),
-('Taller: Programación con IA generativa', '2026-10-12 12:00:00', 'Laboratorio 2', 3),
-('Competencia de proyectos estudiantiles', '2026-10-12 15:00:00', 'Auditorio Principal', 3),
-('Cierre y entrega de premios', '2026-10-12 17:00:00', 'Escenario Principal', 3);
+('Charla: Ciberseguridad y protección de datos', '2026-10-12 10:00:00', 'Sala A', 3, 1),
+('Taller: Programación con IA generativa', '2026-10-12 12:00:00', 'Laboratorio 2', 3, 6),
+('Competencia de proyectos estudiantiles', '2026-10-12 15:00:00', 'Auditorio Principal', 3, 5),
+('Cierre y entrega de premios', '2026-10-12 17:00:00', 'Escenario Principal', 3, 2);
+
+INSERT INTO pertenece
+(legajo_docente, id_Stand, id_establecimiento) VALUES
+-- Establecimiento 1 - Escuela Técnica N°1 La Matanza
+(1001, 1, 1),
+
+-- Establecimiento 2 - Instituto Superior de Formación Docente N°46
+(1002, 2, 2),
+(1003,2,3),
+
+-- Establecimiento 3 - Universidad Nacional de La Matanza
+(1003, 3, 3),
+
+-- Establecimiento 4 - UBA
+(1004, 4, 4),
+
+-- Establecimiento 5 - Escuela Industrial N°3 Morón
+(1005, 5, 5),
+
+-- Establecimiento 6 - Instituto Politécnico del Oeste
+(1006, 6, 6),
+(1007,6,6);
+
+
+INSERT INTO modalidad
+(ID, descripcion) VALUES
+(1, "presencial"),
+(2, "sesion_virtual");
+
+INSERT INTO sesion_virtual
+(ID_MOD, enlace) VALUES
+(2, 'https://meet.google.com/expo-dia2-sesion1');
+
+INSERT INTO presencial 
+(ID_MOD) VALUES 
+(1);
+
+
+INSERT INTO asistenteobtienepremio
+(ID_ASIST, COD_PREMIO) VALUES
+-- Premios por sorteo de actividades
+(2, 4),  -- Sofía Hernández - Sorteo mochila
+(4, 5),  -- Juan Palma - Sorteo auriculares
+(6, 6),  -- Analia Martínez - Sorteo mouse gamer
+(7, 7),  -- Lewis Martínez - Sorteo remeras
+(8, 8),  -- Matías Malta - Sorteo kit tecnológico
+(9, 9);  -- Verónica Gallardo - Sorteo powerbank 
+
+INSERT INTO nota_periodistica
+(ID, PLATAFORMA, ENLACE, ID_EVENTO) VALUES
+-- Día 1 - Expo Proyecto WEB
+(1, 'YouTube', 'https://www.youtube.com/watch?v=expo_dia1', 1),
+(2, 'Televisión', 'https://www.canaltech.tv/expo2026-dia1', 1),
+
+-- Día 2 - Expo Proyecto Web
+(3, 'YouTube', 'https://www.youtube.com/watch?v=expo_dia2', 2),
+(4, 'Televisión', 'https://www.canaltech.tv/expo2026-dia2', 2),
+
+-- Día 3 - Expo Proyecto Web
+(5, 'YouTube', 'https://www.youtube.com/watch?v=expo_dia3', 3),
+(6, 'Televisión', 'https://www.canaltech.tv/expo2026-dia3', 3);
+
+INSERT INTO asistenteopinaennota
+(ID_ASIST, ID_NOTA, opinion) VALUES
+-- Día 1 - Expo Proyecto WEB
+(1, 1, 'Excelente inauguración, muy bien organizada.'),
+(2, 2, 'Buena cobertura en TV, se entendió todo claramente.'),
+(3, 1, 'Interesante presentación de NutriGlass, muy innovador.'),
+(4, 2, 'Buen resumen del evento en CanalTech.'),
+
+-- Día 2 - Expo Proyecto Web
+(5, 3, 'Muy buena charla sobre diseño web y accesibilidad.'),
+(6, 4, 'Me gustó la entrevista a los estudiantes, muy motivadora.'),
+(7, 3, 'Excelente calidad de imagen en la transmisión de YouTube.'),
+(8, 4, 'Buena iniciativa para conectar empresas y estudiantes.'),
+
+-- Día 3 - Expo Proyecto Web
+(9, 5, 'El cierre fue muy emotivo y bien producido.'),
+(1, 5, 'Gran cobertura final, refleja el esfuerzo de todos.'),      -- mismo asistente (1) repite en otra jornada, misma plataforma (YouTube)
+(2, 6, 'La transmisión de TV del último día fue impecable.'),        -- mismo asistente (2) repite en otro día y otra plataforma
+(7, 6, 'Excelente cierre, los proyectos fueron inspiradores.');
+
+
+INSERT INTO asistenteparticipaenactividad
+(ID_ASIST, NOMBRE_ACT) VALUES
+-- Día 1 - Expo Proyecto 2026
+(1, 'Apertura oficial y bienvenida'),
+(2, 'Charla: Innovación y tecnología educativa'),
+(3, 'Taller de Realidad Aumentada'),
+(4, 'Presentación de proyectos destacados'),
+
+-- Día 2 - Expo Proyecto Web
+(5, 'Charla: Diseño UX/UI en entornos educativos'),
+(6, 'Taller: Creación de sitios web responsivos'),
+(7, 'Exposición: ConectaTech y empleabilidad digital'),
+(8, 'Demostración: NutriGlass en acción'),
+
+-- Día 3 - Expo Proyecto Web
+(9, 'Charla: Ciberseguridad y protección de datos'),
+(1, 'Competencia de proyectos estudiantiles'),
+(2, 'Taller: Programación con IA generativa'),
+(7, 'Cierre y entrega de premios');
+
+INSERT INTO esbrindada
+(CUIT_EMPRESA, NOMBRE_ACTIVIDAD) VALUES
+-- Día 1
+('30-71234567-9', 'Apertura oficial y bienvenida'),
+('30-68945213-7', 'Charla: Innovación y tecnología educativa'),
+('30-74589632-1', 'Taller de Realidad Aumentada'),
+('30-68945213-7', 'Taller de Realidad Aumentada'),-- empresa para misma act
+('30-71234567-9', 'Presentación de proyectos destacados'), -- se repite TechVision
+
+-- Día 2
+('30-65893412-4', 'Charla: Diseño UX/UI en entornos educativos'),
+('30-74589632-1', 'Taller: Creación de sitios web responsivos'),
+('30-70123498-6', 'Exposición: ConectaTech y empleabilidad digital'),
+('30-77889900-3', 'Demostración: NutriGlass en acción'),
+
+-- Día 3
+('30-68945213-7', 'Charla: Ciberseguridad y protección de datos'),
+('30-65893412-4', 'Taller: Programación con IA generativa'),
+('30-70123498-6', 'Competencia de proyectos estudiantiles'),
+('30-77889900-3', 'Cierre y entrega de premios');
+
+INSERT INTO notaperiodistaentrevistaestudiante
+(id_nota, id_estudiante, descripcion) VALUES
+-- Día 1 - Expo Proyecto 2026
+(1, 1, 'Lucía explicó cómo las gafas NutriGlass muestran la información nutricional en tiempo real.'),
+(2, 2, 'Matías comentó los desafíos de la programación del prototipo de NutriGlass.'),
+
+-- Día 2 - Expo Proyecto Web
+(3, 3, 'Carolina detalló cómo el proyecto ConectaTech busca unir empresas y estudiantes.'),
+(3, 4, 'Julián habló sobre las funciones de búsqueda laboral integradas en ConectaTech.'),
+(4, 5, 'Sofía presentó la plataforma EcoPoints y sus mecánicas de reciclaje.'),
+(4, 6, 'Martín explicó el sistema de puntos digitales implementado en EcoPoints.'),
+
+-- Día 3 - Expo Proyecto Web
+(5, 7, 'Valentina mostró el diseño UX/UI del sitio ExpoWeb y su enfoque accesible.'),
+(5, 8, 'Tomás contó cómo se estructuró el frontend de ExpoWeb con HTML y CSS.'),
+(6, 9, 'Camila demostró el robot EduBot en acción, enseñando lógica de programación.'),
+(6, 10, 'Leandro habló sobre las mejoras de hardware aplicadas al robot EduBot.'),
+
+-- Extras: entrevistas adicionales a proyectos destacados
+(1, 11, 'Brenda explicó cómo SafeSchool controla accesos mediante reconocimiento facial.'),
+(2, 12, 'Nicolás detalló las funciones de seguridad y alertas del sistema SafeSchool.');
 
